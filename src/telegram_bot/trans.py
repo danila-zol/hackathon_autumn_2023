@@ -8,17 +8,17 @@ class Transmission:
         self, 
         transmission_id: int,
         delivery_type: str = None, 
-        size: int = None, 
-        embeded: str = None, 
+        positions: int = None, 
+        embed: str = None, 
         measures: dict = None,         # weight included
-        cost: str = None,
-        address: str = None,
+        cost: tuple = None,
+        address: tuple = None,
         payment: str = None,
         status: str = None):
         self.transmission_id = transmission_id
         self.delivery_type = delivery_type
-        self.size = size
-        self.embeded = embeded
+        self.size = positions
+        self.embeded = embed
         self.measures = measures
         self.cost = cost
         self.address = address
@@ -29,7 +29,7 @@ class Transmission:
 class TransChecker:
 
     def __init__(self):
-        with open(USER_TRANS_PATH) as F:
+        with open(USER_TRANS_PATH, "rb") as F:
             self.user_trans = pickle.load(F)
 
     def list_transmissions(self, user: str):
