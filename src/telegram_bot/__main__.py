@@ -12,10 +12,12 @@ from trans import Transmission, TransChecker
 import asyncio
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-
 dp = Dispatcher()
 auth = Authenticator()
 tc = TransChecker()
+
+import management
+from login import Login
 
 usage_commands = {
     "/list": "Вывести список отправлений",
@@ -24,10 +26,6 @@ usage_commands = {
     "/report": "Зарегестрировать претензию",
     "/help": "Получить сообщение со справкой",
 }
-
-
-import management
-from login import Login
 
 class Usage(StatesGroup):
     stand_by               = State()        # Стэйт, на который юзер переходит, когда отменяет команду. Также не позволяет запускать комадны в других командах
@@ -150,7 +148,10 @@ async def retry_descriptions(message: Message, state: FSMContext, iterations: in
     item_descriptions.clear()
     message.answer("Описания всех позиций стёрты.")
 
-@dp.message(Login.logged_in, Usage.get_embed_description, iterations <= bill_form["items"])
+@dp.message(
+    Login.logged_in,
+    Usage.get_embed_description
+    )
 async def got_one_description(message: Message, state: FSMContext, iterations: int = iterations):
     if iterations == bill_form["items"]:
         message.answer("Все позиции записаны.\n" +
