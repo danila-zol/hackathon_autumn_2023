@@ -17,17 +17,19 @@ dp = Dispatcher()
 auth = Authenticator()
 tc = TransChecker()
 
-class Login(StatesGroup):
-    get_cotract_id = State()
-    get_password   = State()
-    logged_in      = State()
-
 class Usage(StatesGroup):
     stand_by           = State()        # Стэйт, на который юзер переходит, когда отменяет команду. Также не позволяет запускать комадны в других командах
     ask_transmissions  = State()
     track_transmission = State()
     create_bill        = State()
     report_problem     = State()
+
+
+class Login(StatesGroup):
+    getting_contract_id = State()
+    getting_password    = State()
+    logged_in           = State()
+
 
 usage_commands = {
     "`/list`": "Вывести список отправлений",
@@ -38,93 +40,44 @@ usage_commands = {
 }
 
 @dp.message(CommandStart())
-async def begin(message: Message) -> None:
+async def begin(message: Message, state: FSMContext) -> None:
     await message.answer(
-        f"Добро пожаловать, {hbold(message.from_user.full_name)}!\n" +
-        "Я — Эфирный Курьер." + 
-        "Я помогу вам быстро и удобно составить накладную, отследить заказ или составить жалобу." +
-        "Для начала авторизуйтесь."
+        f"""
+        Добро пожаловать, {hbold(message.from_user.full_name)}! 
+        Я — Эфирный Курьер.
+        Я помогу вам быстро и удобно составить накладную, отследить заказ или составить жалобу.
+        Для следует авторизоваться. Введите пожалуйста номер вашего договора
+        """
    )
+    await state.set_state(Login.getting_contract_id)
 
 
-class OrderFood(StatesGroup):
-    choosing_food_name = State()
-    choosing_food_size = State()
-    not_hungry         = State()
-
-
-@dp.message(Command("food"))
-async def cmd_food(message: Message, state: FSMContext):
-    await message.answer(
-        text="Выберите блюдо:",
-    )
-    # Устанавливаем пользователю состояние "выбирает название"
-    await state.set_state(OrderFood.choosing_food_name)
-
-
-@dp.message(Command("login"))
-async def login(message: Message, state: FSMContext) -> None:
-    await message.answer(
-        "Введите номер контракта"
-    )
-    await state.set_state(Login.get_cotract_id)
-
-
-@dp.message(OrderFood.choosing_food_name)
-async def food_chosen_incorrectly(message: Message, state: FSMContext):
-    await message.answer("Проверяю наличие кетчупа")
-    if not auth.check_contract_id(message.text.lower()):
-        await message.answer("Кетчупа нет :(")
-        return
-
-    await message.answer("Да.")
-    await state.set_state(OrderFood.choosing_food_size)
-
-
-@dp.message(OrderFood.choosing_food_size)
-async def food_size_chosen_incorrectly(message: Message, state: FSMContext):
-    await message.answer("Проверяю наличие сыра")
-    if not auth.check_password(message.text.lower()):
-        await message.answer("Сыра нет :(")
-        return
-
-    await message.answer("Да.")
-    await state.set_state(OrderFood.not_hungry)
-
-
-
-@dp.message(Login.get_cotract_id)
+@dp.message(Login.getting_contract_id)
 async def got_contract_id(message: Message, state: FSMContext):
-    message.answer("Проверяю номер контракта")
+    await message.answer("Проверяю номер контракта")
+
     if not auth.check_contract_id(message.text.lower()):
-        message.answer(
-            "Номер контракта не найден"
-        )
+        await message.answer("Такой номер договора не найден")
         return
-    
-    await message.answer(
-        "Номер контракта успешно найден"
-    )
-    await message.answer(
-        "Введите пароль"
-    )
-    await state.set_state(Login.get_password)
+
+    await message.answer("Теперь введите пароль")
+    await state.set_state(Login.getting_password)
 
 
-@dp.message(Login.get_password)
-async def got_password(message: Message, state: FSMContext):
+@dp.message(Login.getting_password)
+async def food_size_chosen_incorrectly(message: Message, state: FSMContext):
+    await message.answer("Проверяю пароль")
+
     if not auth.check_password(message.text.lower()):
-        message.answer(
-            "Неверный пароль"
-        )
+        await message.answer("Пароль неверный")
         return
-    
-    message.answer(
+
+    await message.answer(
         "Авторизация успешна. Теперь вы можете:\n" +
         "\n".join(["— "+command+" : "+description for command, description in usage_commands.items()])
     )
-    
-    state.set_state(Login.logged_in)
+    await state.set_state(Login.logged_in)
+
 
 @dp.message(Login.logged_in, Command("list"))
 async def give_transmissions(message: Message, state: FSMContext):
