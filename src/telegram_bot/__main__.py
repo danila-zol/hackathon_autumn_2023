@@ -27,13 +27,6 @@ usage_commands = {
 import management
 import customer
 
-# @dp.message(F.text)
-# async def send_state(message : Message, state : FSMContext):
-#     current_state = await state.get_state()
-#     print(f"Current state: {current_state}")
-#     await message.answer(f"Current state: {current_state}")
-
-
 async def main():
     with open("src/telegram_bot/api_key.json") as f:
         api_key = json.load(f)["api_key"]
