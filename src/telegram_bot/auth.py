@@ -1,7 +1,8 @@
 import pickle
 import json
+from aiogram.fsm.state import StatesGroup, State
 
-USER_DICT_PATH = "./data/user_dict.pickle"
+USER_DICT_PATH = "./data/user_dict.pkl"
 CONFIG_PATH = "./src/telegram_bot/config.json"
 
 class Authenticator:
@@ -10,7 +11,7 @@ class Authenticator:
     config = {}
 
     def __init__(self):
-        with open(USER_DICT_PATH) as f:
+        with open(USER_DICT_PATH, "rb") as f:
             user_dict = pickle.load(f)
         
         with open(CONFIG_PATH) as f:
@@ -28,5 +29,19 @@ class Authenticator:
 
     def is_admin(self, user_id):
         return True if user_id in self.config["admins"] else False
+    
+    def check_contract_id(self, contract_id):
+        return True if contract_id in self.user_dict.keys() else False
+    
+    def check_password(self, password):
+        return True if password in self.user_dict.values() else False
+
+
+
+class Login(StatesGroup):
+    get_cotract_id = State()
+    get_password   = State()
+    logged_in      = State()
+
 
     
