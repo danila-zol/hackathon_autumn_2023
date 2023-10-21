@@ -12,10 +12,10 @@ class Authenticator:
 
     def __init__(self):
         with open(USER_DICT_PATH, "rb") as f:
-            user_dict = pickle.load(f)
+            self.user_dict = pickle.load(f)
         
         with open(CONFIG_PATH) as f:
-            config = json.load(f)
+            self.config = json.load(f)
 
     def check_creds(contract_id, password):
         pass
@@ -31,9 +31,11 @@ class Authenticator:
         return True if user_id in self.config["admins"] else False
     
     def check_contract_id(self, contract_id):
+        print(self.user_dict)
         return True if contract_id in self.user_dict.keys() else False
     
     def check_password(self, password):
+        print(self.user_dict)
         return True if password in self.user_dict.values() else False
 
 
