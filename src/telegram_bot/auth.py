@@ -24,8 +24,19 @@ class Authenticator:
 
         self.user_dict[contract_id] = password
 
-        with open(USER_DICT_PATH) as f:
+        with open(USER_DICT_PATH, "wb") as f:
             pickle.dump(self.user_dict, f)
+
+    def del_creds(self, contract_id):
+
+        if not self.user_dict.pop(contract_id, 0):
+            return 0
+
+        with open(USER_DICT_PATH, "wb") as f:
+            pickle.dump(self.user_dict, f)
+        
+        return 1
+
 
     def is_admin(self, user_id):
         return True if user_id in self.config["admins"] else False
