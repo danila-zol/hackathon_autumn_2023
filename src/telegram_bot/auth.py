@@ -39,11 +39,4 @@ class Authenticator:
         return True if password in self.user_dict.values() else False
 
 
-
-class Login(StatesGroup):
-    get_cotract_id = State()
-    get_password   = State()
-    logged_in      = State()
-
-
     
