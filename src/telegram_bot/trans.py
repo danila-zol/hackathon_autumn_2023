@@ -29,14 +29,14 @@ class Transmission:
 class TransChecker:
 
     def __init__(self):
-        with open(USER_TRANS_PATH) as F:
+        with open(USER_TRANS_PATH, "rb") as F:
             self.user_trans = pickle.load(F)
 
     def list_transmissions(self, user: str):
         if self.user_trans.get(user, -1) == -1:
             return False
         answer = [f"{self.user_trans[user][_].transmission_id}\n" for _ in self.user_trans[user]]
-        return *answer
+        return answer
 
     def get_transmission_id(self, transmission: "Transmission"):
         return transmission.transmission_id

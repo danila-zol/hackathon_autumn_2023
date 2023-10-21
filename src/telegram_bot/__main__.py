@@ -42,13 +42,13 @@ usage_commands = {
 @dp.message(CommandStart())
 async def begin(message: Message, state: FSMContext) -> None:
     await message.answer(
-        f"""
-        Добро пожаловать, {hbold(message.from_user.full_name)}! 
-        Я — Эфирный Курьер.
-        Я помогу вам быстро и удобно составить накладную, отследить заказ или составить жалобу.
-        Для следует авторизоваться. Введите пожалуйста номер вашего договора
-        """
+    f"Добро пожаловать, {hbold(message.from_user.full_name)}! Я — Эфирный Курьер. " + 
+    "Я помогу вам быстро и удобно составить накладную, отследить заказ или составить жалобу.\n" +
+    "Для начала следует авторизоваться"
    )
+    await message.answer(
+        "Введите пожалуйста номер вашего договора"
+    )
     await state.set_state(Login.getting_contract_id)
 
 
@@ -60,7 +60,7 @@ async def got_contract_id(message: Message, state: FSMContext):
         await message.answer("Такой номер договора не найден")
         return
 
-    await message.answer("Теперь введите пароль")
+    await message.answer("Успех! Теперь введите пароль")
     await state.set_state(Login.getting_password)
 
 
@@ -73,7 +73,7 @@ async def food_size_chosen_incorrectly(message: Message, state: FSMContext):
         return
 
     await message.answer(
-        "Авторизация успешна. Теперь вы можете:\n" +
+        "Авторизация успешна! Теперь вы можете:\n" +
         "\n".join(["— "+command+" : "+description for command, description in usage_commands.items()])
     )
     await state.set_state(Login.logged_in)
