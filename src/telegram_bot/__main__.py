@@ -7,18 +7,35 @@ from aiogram.utils.markdown import hbold
 from aiogram.fsm.context import FSMContext
 from aiogram import F
 from aiogram.fsm.state import State, StatesGroup
-from auth import Authenticator
+from auth import Authenticator, Login
+from trans import Transmission, TransChecker
 import asyncio
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 
 dp = Dispatcher()
 auth = Authenticator()
+tc = TransChecker()
 
 class Login(StatesGroup):
     get_cotract_id = State()
     get_password   = State()
     logged_in      = State()
+
+class Usage(StatesGroup):
+    stand_by           = State()        # Стэйт, на который юзер переходит, когда отменяет команду. Также не позволяет запускать комадны в других командах
+    ask_transmissions  = State()
+    track_transmission = State()
+    create_bill        = State()
+    report_problem     = State()
+
+usage_commands = {
+    "`/list`": "Вывести список отправлений",
+    "`/track`": "Узнать статус заказа",
+    "`/bill`": "Создать новую накладную",
+    "`/report`": "Зарегестрировать претензию",
+    "`/help`": "Получить сообщение со справкой",
+}
 
 @dp.message(CommandStart())
 async def begin(message: Message) -> None:
@@ -27,7 +44,7 @@ async def begin(message: Message) -> None:
         "Я — Эфирный Курьер." + 
         "Я помогу вам быстро и удобно составить накладную, отследить заказ или составить жалобу." +
         "Для начала авторизуйтесь."
-    )
+   )
 
 
 class OrderFood(StatesGroup):
@@ -103,11 +120,44 @@ async def got_password(message: Message, state: FSMContext):
         return
     
     message.answer(
-        "Авторизация успешна"
+        "Авторизация успешна. Теперь вы можете:\n" +
+        "\n".join(["— "+command+" : "+description for command, description in usage_commands.items()])
     )
     
     state.set_state(Login.logged_in)
 
+@dp.message(Login.logged_in, Command("list"))
+async def give_transmissions(message: Message, state: FSMContext):
+    await message.answer("Получение списка отправлений. Пожалуйста, подождите")
+    if not tc.list_transmissions():
+        message.answer("По вашему номеру договора ничего не найдено.")
+    message.send(tc.list_transmissions())             # Как определить юзера?
+
+@dp.message(Login.logged_in, Command("help"))
+async def give_help(message: Message, state: FSMContext):
+    await message.answer("Справка по использованию бота:\n" +
+        "\n".join(["— "+command+" : "+description for command, description in usage_commands.items()])
+    )
+
+@dp.message(Login.logged_in, Command("track"))
+async def track_transmission(message: Message, state: FSMContext):
+    await message.answer(
+        "Пожалуйста, введите номер отправления, которое хотите отследить\n"+
+        "`/cancel` для отмены."
+    )
+    state.set_state(Usage.track_transmission)
+
+@dp.message(Login.logged_in, Usage.track_transmission)
+async def got_transmission_id(message: Message, state: FSMContext):
+    await message.answer("Получение информации по отправлению. Пожалуйста, подождите")
+    if not tc.get_transmission_status(message.text.lower()):
+        message.answer("Заказ не найден. Проверьте написание номера и попробуйте ещё раз")
+    message.answer(tc.get_transmission_id(message.text.lower()))
+    state.set_state(Usage.stand_by)
+
+@dp.message(Login.logged_in, Usage.stand_by, Command("bill"))
+async def new_bill(message: Message, state: FSMContext):
+    await message.answer("Пожалуйста, введите")
 
 # @dp.message(F.text)
 # async def send_state(message : Message, state : FSMContext):
