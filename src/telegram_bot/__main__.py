@@ -17,6 +17,18 @@ dp = Dispatcher()
 auth = Authenticator()
 tc = TransChecker()
 
+usage_commands = {
+    "/list": "Вывести список отправлений",
+    "/track": "Узнать статус заказа",
+    "/bill": "Создать новую накладную",
+    "/report": "Зарегестрировать претензию",
+    "/help": "Получить сообщение со справкой",
+}
+
+
+import management
+from login import Login
+
 class Usage(StatesGroup):
     stand_by               = State()        # Стэйт, на который юзер переходит, когда отменяет команду. Также не позволяет запускать комадны в других командах
     ask_transmissions      = State()
@@ -33,29 +45,9 @@ class Usage(StatesGroup):
     get_payment            = State()
     report_problem         = State()
 
-usage_commands = {
-    "/list": "Вывести список отправлений",
-    "/track": "Узнать статус заказа",
-    "/bill": "Создать новую накладную",
-    "/report": "Зарегестрировать претензию",
-    "/help": "Получить сообщение со справкой",
-}
-
 bill_form = {
 
 }
-
-import management
-from login import Login
-
-
-class Usage(StatesGroup):
-    stand_by           = State()        # Стэйт, на который юзер переходит, когда отменяет команду. Также не позволяет запускать комадны в других командах
-    ask_transmissions  = State()
-    track_transmission = State()
-    create_bill        = State()
-    report_problem     = State()
-
 
 @dp.message(Login.logged_in, Command("cancel"))
 async def cancel_operation(message: Message, state: FSMContext):
