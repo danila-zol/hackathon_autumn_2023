@@ -74,7 +74,7 @@ async def new_bill(message: Message, state: FSMContext):
 # async def send_state(message : Message, state : FSMContext):
 #     current_state = await state.get_state()
 #     print(f"Current state: {current_state}")
-#     message.answer(f"Current state: {current_state}")
+#     await message.answer(f"Current state: {current_state}")
 
 
 async def main():

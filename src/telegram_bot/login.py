@@ -12,6 +12,7 @@ class Login(StatesGroup):
     getting_password    = State()
     logged_in           = State()
 
+
 @dp.message(CommandStart())
 async def begin(message: Message, state: FSMContext) -> None:
     await message.answer(
