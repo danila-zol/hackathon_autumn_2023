@@ -17,15 +17,21 @@ class Authenticator:
         with open(CONFIG_PATH) as f:
             self.config = json.load(f)
 
+
     def check_creds(contract_id, password):
         pass
 
-    def add_creds(self, contract_id, password):
 
-        self.users_dict[contract_id]["password"] = password
+    def add_creds(self, username, contract_id, password):
+
+        self.users_dict[contract_id] = {
+            "password" : password,
+            "usernames" : [username]
+        }
 
         with open(USER_DICT_PATH, "wb") as f:
             pickle.dump(self.users_dict, f)
+
 
     def del_creds(self, contract_id):
 
@@ -41,13 +47,19 @@ class Authenticator:
     def is_admin(self, user_id):
         return True if user_id in self.config["admins"] else False
     
+
     def check_contract_id(self, contract_id):
         print(self.users_dict)
         return True if contract_id in self.users_dict.keys() else False
     
-    def check_password(self, password):
-        print(self.users_dict)
-        return True if password in self.users_dict.values() else False
 
+    def check_password(self, contract_id, password):
+        print(self.users_dict)
+        return True if password == self.users_dict[contract_id]["password"] else False
+
+    
+    def _save_user_dict(self):
+        with open(USER_DICT_PATH, "wb") as f:
+            pickle.dump(self.users_dict, f)
 
     

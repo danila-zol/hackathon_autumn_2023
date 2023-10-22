@@ -35,14 +35,16 @@ async def got_contract_id(message: Message, state: FSMContext):
         return
 
     await message.answer("Успех! Теперь введите пароль")
+    await state.update_data(contract_id=message.text.lower())
     await state.set_state(Login.getting_password)
 
 
 @dp.message(Login.getting_password)
 async def food_size_chosen_incorrectly(message: Message, state: FSMContext):
     await message.answer("Проверяю пароль")
+    state_data = await state.get_data()
 
-    if not auth.check_password(message.text.lower()):
+    if not auth.check_password(state_data["contract_id"], message.text.lower()):
         await message.answer("Пароль неверный")
         return
 

@@ -16,7 +16,8 @@ async def is_admin(m: Message):
 )
 async def add_customer(message: Message):
     credentials = message.text.split()
-    auth.add_creds(credentials[1], credentials[2])
+    username = message.from_user.username
+    auth.add_creds(username, credentials[0], credentials[1])
 
 
 @dp.message(
