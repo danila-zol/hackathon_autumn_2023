@@ -39,6 +39,7 @@ class DataCollector:
 
     def __init__(self):
         self.iterations = None
+        self.counter = None
         self.item_descriptions = []
         self.item_measures = []
         self.item_weights = []
@@ -114,7 +115,8 @@ async def new_bill(message: Message, state: FSMContext):
     if not isinstance(message.text, int):
         message.answer("Некорректно введены данные. Пожалуйста, повторите попытку.")
         return
-    dc.iterations = message.text
+    dc.iterations = await message.text
+    dc.counter = await 1
     await message.answer(
         "Пожалуйста, введите режим доставки.\n" +
         "\n".join(transmission_modes) +
@@ -155,12 +157,14 @@ item_descriptions = []
 async def undo_description(message: Message):
     if dc.undo(item_descriptions) is False:
         return
+    dc.counter = await (dc.counter - 1)
     await dc.undo(item_measures)
     await message.answer(f"Описание прошлой позиции удалено.")
 
 @dp.message(Login.logged_in, Bill.get_embed_description, Command("retry"))
 async def retry_descriptions(message: Message, state: FSMContext):
     await dc.clear(item_descriptions)
+    dc.counter = await 1
     await message.answer("Описания всех позиций стёрты.")
 
 @dp.message(Login.logged_in, Bill.get_embed_description, Command("confirm"))
@@ -196,11 +200,13 @@ async def undo_measurements(message: Message):
     if dc.undo(item_measures) is False:
         return
     await dc.undo(item_measures)
+    dc.counter = await (dc.counter - 1)
     await message.answer(f"Описание прошлой позиции удалено.")
 
 @dp.message(Login.logged_in, Bill.get_place_measurements, Command("retry"))
 async def retry_measurements(message: Message, state: FSMContext):
     await dc.clear(item_measures)
+    dc.counter = await 1
     await message.answer("Описания всех позиций стёрты.")
 
 @dp.message(Login.logged_in, Bill.get_place_measurements, Command("confirm"))
