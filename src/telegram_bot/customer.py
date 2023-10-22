@@ -44,9 +44,6 @@ class DataCollector:
         self.item_measures = []
         self.item_weights = []
 
-    def collect(self, what: str | int | float, where: list):
-        where.append(what)
-
     def clear(self, what):
         what.clear()
     
@@ -158,8 +155,8 @@ async def undo_description(message: Message):
     if dc.undo(item_descriptions) is False:
         return
     dc.counter = await (dc.counter - 1)
-    await dc.undo(item_measures)
-    await message.answer(f"Описание прошлой позиции удалено.")
+    await dc.undo(dc.item_measures)
+    await message.answer(f"Описание позиции {dc.counter} удалено.")
 
 @dp.message(Login.logged_in, Bill.get_embed_description, Command("retry"))
 async def retry_descriptions(message: Message, state: FSMContext):
@@ -169,7 +166,7 @@ async def retry_descriptions(message: Message, state: FSMContext):
 
 @dp.message(Login.logged_in, Bill.get_embed_description, Command("confirm"))
 async def confirm_descriptions(message: Message, state: FSMContext):
-    await bill_form.update({"descriptions": item_descriptions})
+    await bill_form.update({"descriptions": dc.item_descriptions})
     await message.answer("Все позиции записаны!")
     await state.set_state(Bill.got_all_desc)
 
@@ -177,12 +174,13 @@ async def confirm_descriptions(message: Message, state: FSMContext):
 async def got_one_description(message: Message, state: FSMContext):
     await item_descriptions.append(message.text)
     await message.answer(
-        f"Описание позиции {iterations} записано."+
+        f"Описание позиции {dc.counter} записано."+
         "\n\n/confirm — закончить и подтвердить все данные"
         "\n/undo — сброс последней позиции" +
         "\n/retry — начать набор данных сначала" +
         "\n/cancel — отмена создания накладной"
         )   
+    dc.counter = await dc.counter + 1
 
 @dp.message(Login.logged_in, Bill.got_all_desc)
 async def ask_measurements(message: Message, state: FSMContext):
@@ -197,15 +195,15 @@ async def ask_measurements(message: Message, state: FSMContext):
 
 @dp.message(Login.logged_in, Bill.get_place_measurements, Command("undo"))
 async def undo_measurements(message: Message):
-    if dc.undo(item_measures) is False:
+    if dc.undo(dc.item_measures) is False:
         return
-    await dc.undo(item_measures)
     dc.counter = await (dc.counter - 1)
-    await message.answer(f"Описание прошлой позиции удалено.")
+    await dc.undo(dc.item_measures)
+    await message.answer(f"Описание позиции {dc.item_measures} удалено.")
 
 @dp.message(Login.logged_in, Bill.get_place_measurements, Command("retry"))
 async def retry_measurements(message: Message, state: FSMContext):
-    await dc.clear(item_measures)
+    await dc.clear(dc.item_measures)
     dc.counter = await 1
     await message.answer("Описания всех позиций стёрты.")
 
@@ -217,4 +215,4 @@ async def confirm_measurements(message: Message, state: FSMContext):
 
 @dp.message(Login.logged_in, Bill.get_place_measurements)
 async def collect_one_measure(message: Message):
-    await message.answer("Описание ")
+    pass
