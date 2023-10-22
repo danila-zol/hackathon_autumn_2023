@@ -60,9 +60,12 @@ class Report(StatesGroup):
 
 # dc = DataCollector()
 
-bill_form = {
+# bill_form = {
 
-}
+# }
+@dp.message(Login.logged_in)
+async def initialize(message: Message, state: FSMContext):
+    await state.set_state(Usage.stand_by)
 
 @dp.message(Login.logged_in, Command("cancel"))
 async def cancel_operation(message: Message, state: FSMContext):
@@ -70,7 +73,6 @@ async def cancel_operation(message: Message, state: FSMContext):
     await state.set_state(Usage.stand_by)
     await state.set_state(Report.stand_by)
     await state.set_state(Bill.stand_by)
-    await bill_form.clear()
 
 @dp.message(Login.logged_in, Command("help"))
 async def give_help(message: Message, state: FSMContext):
