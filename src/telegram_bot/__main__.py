@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram import F
 from aiogram.fsm.state import State, StatesGroup
 from auth import Authenticator
-from trans import Transmission, TransChecker
+from trans import TransChecker
 import asyncio
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 

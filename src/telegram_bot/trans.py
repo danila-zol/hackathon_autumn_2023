@@ -1,51 +1,56 @@
 import pickle
 
-USER_TRANS_PATH = "./data/user_trans.pkl"
+USER_DICT_PATH = "./data/user_dict.pkl"
 
-class Transmission:
+# class Transmission:
 
-    def __init__(
-        self, 
-        transmission_id: int,
-        delivery_type: str = None, 
-        positions: int = None, 
-        embed: str = None, 
-        measures: dict = None,         # weight included
-        cost: tuple = None,
-        address: tuple = None,
-        payment: str = None,
-        status: str = None):
-        self.transmission_id = transmission_id
-        self.delivery_type = delivery_type
-        self.size = positions
-        self.embeded = embed
-        self.measures = measures
-        self.cost = cost
-        self.address = address
-        self.payment = payment
-        self.status = None
+#     def __init__(
+#         self, 
+#         transmission_id: int,
+#         delivery_type: str = None, 
+#         positions: int = None, 
+#         embed: str = None, 
+#         measures: dict = None,         # weight included
+#         cost: tuple = None,
+#         address: tuple = None,
+#         payment: str = None,
+#         status: str = None):
+#         self.transmission_id = transmission_id
+#         self.delivery_type = delivery_type
+#         self.size = positions
+#         self.embeded = embed
+#         self.measures = measures
+#         self.cost = cost
+#         self.address = address
+#         self.payment = payment
+#         self.status = None
 
 
 class TransChecker:
 
     def __init__(self):
-        with open(USER_TRANS_PATH, "rb") as F:
-            self.user_trans = pickle.load(F)
+        with open(USER_DICT_PATH, "rb") as f:
+            self.user_dict = pickle.load(f)
 
-    def list_transmissions(self, user: str):
-        if self.user_trans.get(user, -1) == -1:
+    def list_transmissions(self, contract_id: str):
+        if self.user_dict[contract_id].get("transmissions", -1) == -1:
             return False
-        answer = [f"{self.user_trans[user][_].transmission_id}\n" for _ in self.user_trans[user]]
+        answer = [f"{self.user_dict[contract_id]['transmissions'][_]}\n" for _ in self.user_trans[contract_id]['transmissions']]
         return answer
 
-    def get_transmission_id(self, transmission: "Transmission"):
-        return transmission.transmission_id
-
-    def get_transmission_status(self, transmission: "Transmission"):
-        if transmission.status is None:
+    def get_transmission_status(self, transmission):
+        if self.user_dict[transmission]["status"] is None:
             return False
-        return f"Статус отправления: {self.status}"
+        return f"Статус отправления: {self.user_dict[transmission]['status']}"
 
+    def create_bill(self, bill_dict: dict):
+        if self.user_dict.get("bills", -1) == -1:
+            self.user_dict.update({"bills": []})
+        temp = self.user_dict["bills"]
+        temp.append(bill_dict)
+        self.user_dict.update({"bills": temp})
+        with open(USER_DICT_PATH, "wb") as f:
+            pickle.dump(self.user_dict, f)
             
 # trans1 = Transmission(
 #     transmission_id=1, 
