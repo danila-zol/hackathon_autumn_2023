@@ -66,12 +66,11 @@ bill_form = {
 
 @dp.message(Login.logged_in, Command("cancel"))
 async def cancel_operation(message: Message, state: FSMContext):
-    if not state == Usage.stand_by:
-        message.answer("Отмена операции")
-        state.set_state(Usage.stand_by)
-        state.set_state(Report.stand_by)
-        state.set_state(Bill.stand_by)
-        bill_form.clear()
+    await message.answer("Отмена операции")
+    await state.set_state(Usage.stand_by)
+    await state.set_state(Report.stand_by)
+    await state.set_state(Bill.stand_by)
+    await bill_form.clear()
 
 @dp.message(Login.logged_in, Command("help"))
 async def give_help(message: Message, state: FSMContext):
@@ -82,15 +81,15 @@ async def give_help(message: Message, state: FSMContext):
 @dp.message(Login.logged_in, Command("list"))
 async def give_transmissions(message: Message, state: FSMContext):
     await message.answer("Пожалуйста, введите номер вашего договора")
-    state.set_state(Usage.list_transmissions)
+    await state.set_state(Usage.list_transmissions)
 
 @dp.message(Login.logged_in, Usage.list_transmissions)
 async def list_transmissions(message: Message, state: FSMContext):
     await message.answer("Получение списка отправлений. Пожалуйста, подождите")
     if not tc.list_transmissions(message.text.lower()):
-        message.answer("По вашему номеру договора ничего не найдено.")
-    message.send(tc.list_transmissions(message.text.lower()))
-    state.set_state(Usage.stand_by)
+        await message.answer("По вашему номеру договора ничего не найдено.")
+    await message.send(tc.list_transmissions(message.text.lower()))
+    await state.set_state(Usage.stand_by)
 
 @dp.message(Login.logged_in, Usage.stand_by, Command("track"))
 async def track_transmission(message: Message, state: FSMContext):
@@ -226,21 +225,21 @@ async def confirm_measurements(message: Message, state: FSMContext):
 
 @dp.message(Login.logged_in, Bill.record_place_measurements)
 async def collect_one_measure(message: Message, state: FSMContext):
-    meas_dict = {"Длина": None, "Ширина": None, "Высота": None}
-    tokenize_this = message.text.lower()
-    i = 0
+    meas_dict = await {"Длина": None, "Ширина": None, "Высота": None}
+    tokenize_this = await message.text.lower()
+    i = await 0
     for _ in range(len(message.text.lower())):
         if message.text[_+1] == "/":
-            meas_dict.update({meas_dict.keys()[i]:tokenize_this[:_+1]})
-            i += 1
+            await meas_dict.update({meas_dict.keys()[i]:tokenize_this[:_+1]})
+            i = await i + 1
             tokenize_this[_+1:]
     for measurement in meas_dict.values():
         if measurement is None:
-            message.answer("Некорректный ввод. Пожалуйста повторите попытку.")
+            await message.answer("Некорректный ввод. Пожалуйста повторите попытку.")
             return
-    temp = state.get_data()["measurements"]
-    temp.append(meas_dict)
-    state.update_data()
+    temp = await state.get_data()["measurements"]
+    await temp.append(meas_dict)
+    await state.update_data()
     await message.answer(
         "Измерения места записаны." +
         "\n\n/confirm — закончить и подтвердить все данные" +
@@ -337,7 +336,7 @@ async def got_address(message: Message, state: FSMContext):
 @dp.message(Login.logged_in, Bill.get_payment_type)
 async def got_payment_type(message: Message, state: FSMContext):
     await state.update_data(payment_type=message.text.lower())
-    final_data = state.get_data()
+    final_data = await state.get_data()
     await message.answer("Отлично! Теперь пересмотрите введённые данные и подтвердите их командой /confirm\nили начните сначала командой /cancel")
     embeded = await '\n'.join(final_data['descriptions'])
     measurements = await '\n'.join([final_data['measurements']])
